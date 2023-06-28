@@ -41,7 +41,7 @@
  * @param[in]       sici  pin for SICI communication
  * @param[in]       ocd1  pin for over-current detection 1 signal of sensor
  * @param[in]       ocd2  pin for over-current detection 2 signal of sensor
- * @param[in]       mux   pin connected to analog mulitplexer on Shield2Go
+ * @param[in]       mux   pin connected to analog multiplexer on Shield2Go
  * @param[in]       mc5V states whether microcontroller is a 5V or 3V3 device (needed for calculation)
  * 
  * @return          void         
@@ -60,6 +60,7 @@ TLI4971::TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int 
 
   pinMode(ocd1Pin, INPUT);
   pinMode(ocd2Pin, INPUT);
+  pinMode(pwrPin, INPUT_PULLUP); //ensure pwr pin starts in HIGH state as soon as it is switched to OUTPUT
   pinMode(pwrPin, OUTPUT);
   pinMode(muxPin, OUTPUT);
   digitalWrite(muxPin, HIGH);
@@ -76,7 +77,7 @@ TLI4971::TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int 
 TLI4971::~TLI4971(void)
 {
   end();
-  pinMode(pwrPin, INPUT);
+  pinMode(pwrPin, INPUT_PULLUP);
   pinMode(muxPin, INPUT);
   configAdc(ll5V, 8);
 }
@@ -141,7 +142,7 @@ bool TLI4971::begin(void)
  * @brief     Resets sensor to factory settings.
  * 
  * @return    bool
- * @retval    true if restart succeded
+ * @retval    true if restart succeeded
  * @retval    false if restart failed (SICI communication not possible)
  */
 bool TLI4971::reset()

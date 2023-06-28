@@ -39,6 +39,8 @@
 
 #include <Arduino.h>
 #include "OneWire.h"
+#include "util/OneWire_direct_gpio.h"
+#include "util/OneWire_direct_regtype.h"
 
 namespace tli4971
 {
@@ -55,7 +57,9 @@ private:
 	uint8_t mActive;
 	uint8_t mPin;
 	uint8_t mPwrPin;
-	OneWire *mInterface;
+	
+	IO_REG_TYPE bitmask;
+    volatile IO_REG_TYPE *baseReg;
 	
 	uint8_t read_bit(void);
 	void write_bit(uint8_t value);

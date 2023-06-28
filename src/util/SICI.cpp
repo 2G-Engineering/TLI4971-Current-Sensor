@@ -9,6 +9,7 @@
  * Have a look at the application note/reference manual for more information.
  * 
  * This file uses the OneWire library, originally developed by Jim Studt and many contributors since then.
+ * The read_bit and write_bit functions are also based heavily on functions of the same name from that library.
  * Please have a look at the OneWire library for additional information about the license, copyright, and contributors.
  * 
  * Copyright (c) 2018 Infineon Technologies AG
@@ -36,6 +37,7 @@
 
 #include "SICI.h"
 
+
 #define T_EN 150
 #define T_EN_MAX 400
 #define T_LOW 20
@@ -44,19 +46,14 @@
 tli4971::Sici::Sici(uint8_t pin, uint8_t pwrPin)
 {
 	mActive = false;
-	mInterface = nullptr;
 	mPin = pin;
 	mPwrPin = pwrPin;
+	bitmask = PIN_TO_BITMASK(pin);
+	baseReg = PIN_TO_BASEREG(pin);
 }
 
 void tli4971::Sici::begin(void)
 {
-  #if defined(XMC1100_XMC2GO) || defined(XMC1100_Boot_Kit) || defined(XMC4700_Relax_Kit)
-	onewire::Timing_t timingTLI4971 = { 40, 80, 60, 120, 6000 };
-	mInterface = new OneWire(mPin, &timingTLI4971);
-  #else
-	mInterface = new OneWire(mPin);
-  #endif
 	mActive = true;
 }
 
@@ -65,8 +62,6 @@ void tli4971::Sici::end(void)
 	digitalWrite(mPin, LOW);
 	delay(6);	//End SICI communication
 	pinMode(mPin, INPUT);
-	delete mInterface;
-	mInterface = nullptr;
 	mActive = false;
 }
 
@@ -75,6 +70,7 @@ bool tli4971::Sici::enterSensorIF()
   uint16_t rec;
   //restart Sensor by switching VDD off and on again
   digitalWrite(mPwrPin, HIGH);		//For green Shield: digitalWrite(mPwrPin, LOW);
+  pinMode(mPin, OUTPUT);
   digitalWrite(mPin, LOW);
   delay(100);
   digitalWrite(mPwrPin, LOW);		//For green Shield: digitalWrite(mPwrPin, HIGH);
@@ -104,13 +100,42 @@ uint16_t tli4971::Sici::transfer16(uint16_t dataIn)
 uint8_t tli4971::Sici::read_bit(void)
 {
 	// 1 is a long low pulse, 0 is a short low pulse
-	// exactly different from onewire, so we have to invert it
-	return !(mInterface->read_bit());
+	IO_REG_TYPE mask IO_REG_MASK_ATTR = bitmask;
+	__attribute__((unused)) volatile IO_REG_TYPE *reg IO_REG_BASE_ATTR = baseReg;
+	uint8_t r;
+
+	noInterrupts();
+	DIRECT_MODE_OUTPUT(reg, mask);
+	DIRECT_WRITE_LOW(reg, mask);
+	delayMicroseconds(10);
+	DIRECT_MODE_INPUT(reg, mask);	// let pin float, pull up will raise
+	delayMicroseconds(31);
+	r = DIRECT_READ(reg, mask);
+	interrupts();
+	delayMicroseconds(45);
+	return !r;
 }
 
 void tli4971::Sici::write_bit(uint8_t value)
 {
 	// 1 is a long low pulse, 0 is a short low pulse
-	// exactly different from onewire, so we have to invert it
-	mInterface->write_bit(!value);
+	IO_REG_TYPE mask IO_REG_MASK_ATTR = bitmask;
+	__attribute__((unused)) volatile IO_REG_TYPE *reg IO_REG_BASE_ATTR = baseReg;
+	if (value & 1) {
+		noInterrupts();
+		DIRECT_WRITE_LOW(reg, mask);
+		DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
+		delayMicroseconds(47);
+		DIRECT_WRITE_HIGH(reg, mask);	// drive output high
+		interrupts();
+		delayMicroseconds(23);
+	} else {
+		noInterrupts();
+		DIRECT_WRITE_LOW(reg, mask);
+		DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
+		delayMicroseconds(23);
+		DIRECT_WRITE_HIGH(reg, mask);	// drive output high
+		interrupts();
+		delayMicroseconds(47);
+	}
 }
