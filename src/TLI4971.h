@@ -129,9 +129,9 @@ class TLI4971
     
     bool prepareBus(void);
     void closeBus(void);
-    void EEPROMProgramZeros(void);
-    void EEPROMProgramOnes(void);
-    void EEPROMRefresh(void);
+    void EEPROMprogramZeros(void);
+    void EEPROMprogramOnes(void);
+    void EEPROMrefresh(void);
 
 };
 
