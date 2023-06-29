@@ -50,7 +50,7 @@ public:
 	void begin(void);
 	void end(void);
 	uint16_t transfer16(uint16_t dataIn);
-	bool enterSensorIF(void);
+	bool enterSensorIF(bool noPowerCycle = false);
 private:
 	uint8_t mActive;
 	uint8_t mPin;

@@ -87,14 +87,21 @@ TLI4971::~TLI4971(void)
 /**
  * @brief     Turn on sensor supply, initialy reads sensor configuration and checks if sensor can be configurated
  *
+ * @param[in]   leaveCommsActive    If true, the sensor's SICI bus will remain active after this function completes.
+ *                                  This will prevent analog usage of the sensor, but will avoid the need to cycle power
+ *                                  in the future, thereby avoiding resetting other sensors on the same power bus.
+ *
+ * @param[in]   noPowerCycle        If true, the power to the sensor will not be cycled.  You must turn off power and drive the analog pin low
+ *                                  manually before calling this function.  This is useful for sensors on a shared power bus.
+ *
  * @return    bool
  * @retval    true if sensor can be configurated
  * @retval    false if sensor not available for configuration (SICI communication failed)
  */
-bool TLI4971::begin(void)
+bool TLI4971::begin(bool leaveCommsActive, bool noPowerCycle)
 {
   bus.begin();
-  if(!bus.enterSensorIF())
+  if(!bus.enterSensorIF(noPowerCycle))
   {
     bus.end();
     return false;
@@ -126,11 +133,19 @@ bool TLI4971::begin(void)
     return false;
   }
 
-  //power on ISM
-  bus.transfer16(0x8250);
-  bus.transfer16(0x0000);
+  if(!leaveCommsActive)
+  {
+    //power on ISM
+    bus.transfer16(0x8250);
+    bus.transfer16(0x0000);
 
-  bus.end();
+    bus.end();
+    siciActive = false;
+  }
+  else
+  {
+    siciActive = true;
+  }
 
   //Get Sensor settings from registers
   measRange = (configRegs[0]&0x001F);
@@ -746,17 +761,20 @@ bool TLI4971::transferConfig(bool sendConfigToEEPROM)
 
 bool TLI4971::prepareBus()
 {
-  bus.begin();
-  if(!bus.enterSensorIF())
-    return false;
-  //power down ISM
-  bus.transfer16(0x8250);
-  bus.transfer16(0x8000);
+  if (!siciActive)
+  {
+    bus.begin();
+    if(!bus.enterSensorIF())
+      return false;
+    //power down ISM
+    bus.transfer16(0x8250);
+    bus.transfer16(0x8000);
 
-  //Disable failure indication
-  bus.transfer16(0x8010);
-  bus.transfer16(0x0000);
-
+    //Disable failure indication
+    bus.transfer16(0x8010);
+    bus.transfer16(0x0000);
+  }
+  return true;
 }
 
 void TLI4971::closeBus()
@@ -792,7 +810,7 @@ void TLI4971::EEPROMrefresh()
   bus.transfer16(0x024C);
 }
 
-bool TLI4971::programConfigToEEPROM()
+bool TLI4971::programConfigToEEPROM(bool leaveCommsActive)
 {
   bool result;
 
@@ -852,7 +870,10 @@ bool TLI4971::programConfigToEEPROM()
   result = true;
 
 cleanup:
-  closeBus();
+  if (!leaveCommsActive)
+  {
+    closeBus();
+  }
 
   pinMode(ocd2Pin, INPUT);
 
