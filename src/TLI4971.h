@@ -31,7 +31,7 @@ class TLI4971
 
     TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int mux, bool mc5V = true, int progPwr = PNUM_NOT_DEFINED);
     ~TLI4971(void);
-    bool begin(void);
+    bool begin(bool leaveCommsActive = true, bool noPowerCycle = false);
     bool reset(void);
     void end(void);
     double read(void);
@@ -59,8 +59,8 @@ class TLI4971
     bool getOcd1State(void);
     bool getOcd2State(void);
     bool getSwOcdState(void);
-    
-    bool programConfigToEEPROM(void);
+
+    bool programConfigToEEPROM(bool leaveCommsActive = false);
 
 	int getMeasRange(void);
 	int getOpMode(void);
@@ -118,15 +118,16 @@ class TLI4971
     bool swOcdTriggered = false;
     bool lastOcd1PinState = HIGH;
     bool lastOcd2PinState = HIGH;
+    bool siciActive;
 
     void (*_ocd1Function)(void);
     void (*_ocd2Function)(void);
     void (*_swOcdFunction)(void);
 
     bool sendConfig(void);
-    
+
     bool transferConfig(bool sendToEEPROM);
-    
+
     bool prepareBus(void);
     void closeBus(void);
     void EEPROMprogramZeros(void);

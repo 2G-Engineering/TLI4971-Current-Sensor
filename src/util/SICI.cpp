@@ -65,15 +65,16 @@ void tli4971::Sici::end(void)
 	mActive = false;
 }
 
-bool tli4971::Sici::enterSensorIF()
+bool tli4971::Sici::enterSensorIF(bool noPowerCycle)
 {
   uint16_t rec;
-  //restart Sensor by switching VDD off and on again
-  digitalWrite(mPwrPin, HIGH);		//For green Shield: digitalWrite(mPwrPin, LOW);
-  pinMode(mPin, OUTPUT);
-  digitalWrite(mPin, LOW);
-  delay(100);
-  digitalWrite(mPwrPin, LOW);		//For green Shield: digitalWrite(mPwrPin, HIGH);
+  if (!noPowerCycle) {
+    //restart Sensor by switching VDD off and on again
+    digitalWrite(mPwrPin, HIGH);		//For green Shield: digitalWrite(mPwrPin, LOW);
+    digitalWrite(mPin, LOW);
+    delay(100);
+    digitalWrite(mPwrPin, LOW);		//For green Shield: digitalWrite(mPwrPin, HIGH);
+  }
   //+IFX_ONEWIRE_PINOUTHIGH;
   //send low pulse to activate Interface
   delayMicroseconds(T_EN + T_LOW);
