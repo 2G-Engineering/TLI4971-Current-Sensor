@@ -54,7 +54,7 @@ class TLI4971
     bool setVrefExt(int vrefExtVoltage);
     bool setRatioGain(bool enable);
     bool setRatioOff(bool enable);
-	bool set1V5Quiescent(bool enable);
+    bool set1V5Quiescent(bool enable);
 
     bool getOcd1State(void);
     bool getOcd2State(void);
@@ -62,24 +62,24 @@ class TLI4971
 
     bool programConfigToEEPROM(bool leaveCommsActive = false);
 
-	int getMeasRange(void);
-	int getOpMode(void);
-	bool getOcd1Enable(void);
-	int getOcd1RawThreshold(void);
-	int getOcd1DeglitchTime(void);
-	bool getOcd2Enable(void);
-	int getOcd2RawThreshold(void);
-	int getOcd2DeglitchTime(void);
+    int getMeasRange(void);
+    int getOpMode(void);
+    bool getOcd1Enable(void);
+    int getOcd1RawThreshold(void);
+    int getOcd1DeglitchTime(void);
+    bool getOcd2Enable(void);
+    int getOcd2RawThreshold(void);
+    int getOcd2DeglitchTime(void);
 
-	int getOcdRawCompHyst(void);
+    int getOcdRawCompHyst(void);
     double getSwOcdCompHyst(void);
     int getVrefExt(void);
-	bool getRatioGain(void);
-	bool getRatioOff(void);
-	bool get1V5Quiescent(void);
+    bool getRatioGain(void);
+    bool getRatioOff(void);
+    bool get1V5Quiescent(void);
 
-	uint16_t convertThresholdToRaw(int threshold);
-	uint16_t convertCompHystToRaw(int threshold);
+    uint16_t convertThresholdToRaw(int threshold);
+    uint16_t convertCompHystToRaw(int threshold);
 
 
   private:
