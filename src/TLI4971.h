@@ -29,7 +29,7 @@ class TLI4971
     enum OCDTHR { THR1_1, THR1_2, THR1_3, THR1_4, THR1_5, THR1_6, THR1_7, THR1_8, THR2_1, THR2_2, THR2_3, THR2_4, THR2_5, THR2_6, THR2_7, THR2_8 };
     enum VRefExt { V1_65, V1_2, V1_5, V1_8, V2_5 };
 
-    TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int mux, bool mc5V = true);
+    TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int mux, bool mc5V = true, int progPwr = PNUM_NOT_DEFINED);
     ~TLI4971(void);
     bool begin(void);
     bool reset(void);
@@ -52,13 +52,15 @@ class TLI4971
     bool setOcdCompHyst(int threshold);
     bool setSwOcdCompHyst(double hysteresis);
     bool setVrefExt(int vrefExtVoltage);
-	bool setRatioGain(bool enable);
-	bool setRatioOff(bool enable);
+    bool setRatioGain(bool enable);
+    bool setRatioOff(bool enable);
 	bool set1V5Quiescent(bool enable);
 
     bool getOcd1State(void);
     bool getOcd2State(void);
     bool getSwOcdState(void);
+    
+    bool programConfigToEEPROM(void);
 
 	int getMeasRange(void);
 	int getOpMode(void);
@@ -90,6 +92,7 @@ class TLI4971
     int aoutPin;
     int siciPin;
     int muxPin;
+    int progPowerPin;
 
     int ocd1FuncMode;
     int ocd2FuncMode;
@@ -102,9 +105,9 @@ class TLI4971
 
     bool ll5V = true;
 #ifdef ADC_RESOLUTION
-	int adcResol = ADC_RESOLUTION; //if possible: highest possible resolution
+    int adcResol = ADC_RESOLUTION; //if possible: highest possible resolution
 #else
-    int adcResol = 10;	//standard for Arduino UNO
+    int adcResol = 10;  //standard for Arduino UNO
 #endif
 
     uint16_t configRegs[3];
@@ -121,6 +124,14 @@ class TLI4971
     void (*_swOcdFunction)(void);
 
     bool sendConfig(void);
+    
+    bool transferConfig(bool sendToEEPROM);
+    
+    bool prepareBus(void);
+    void closeBus(void);
+    void EEPROMProgramZeros(void);
+    void EEPROMProgramOnes(void);
+    void EEPROMRefresh(void);
 
 };
 

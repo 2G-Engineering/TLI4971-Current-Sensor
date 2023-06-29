@@ -43,10 +43,11 @@
  * @param[in]       ocd2  pin for over-current detection 2 signal of sensor
  * @param[in]       mux   pin connected to analog multiplexer on Shield2Go
  * @param[in]       mc5V states whether microcontroller is a 5V or 3V3 device (needed for calculation)
+ * @param[in]       progPwr pin used to enable programming supply to OCD2 (active high)
  *
  * @return          void
  */
-TLI4971::TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int mux, bool mc5V)
+TLI4971::TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int mux, bool mc5V, int progPwr)
 {
   ocd1Pin = ocd1;
   ocd2Pin = ocd2;
@@ -55,6 +56,7 @@ TLI4971::TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int 
   aoutPin = aout;
   siciPin = sici;
   muxPin = mux;
+  progPowerPin = progPwr;
 
   bus = tli4971::Sici(siciPin, pwrPin);
 
@@ -64,6 +66,7 @@ TLI4971::TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int 
   pinMode(pwrPin, OUTPUT);
   pinMode(muxPin, OUTPUT);
   digitalWrite(muxPin, HIGH);
+  pinMode(progPowerPin, OUTPUT);
 
   configAdc(mc5V, adcResol);
 }
@@ -917,6 +920,75 @@ uint16_t TLI4971::convertCompHystToRaw(int threshold)
  */
 bool TLI4971::sendConfig()
 {
+  bool result;
+  if (!prepareBus())
+  {
+    result = false;
+    goto cleanup;
+  }
+
+
+  if(!transferConfig(false))
+  {
+    result = false;
+    goto cleanup;
+  }
+
+  result = true;
+
+cleanup:
+  closeBus();
+
+  return result;
+}
+
+bool TLI4971::transferConfig(bool sendConfigToEEPROM)
+{
+  if(sendConfigToEEPROM)
+  {
+    //send configuration to EEPROM registers 0x0400 - 0x0420
+
+    bus.transfer16(0x8400);
+    bus.transfer16(configRegs[0]);
+    bus.transfer16(0x8410);
+    bus.transfer16(configRegs[1]);
+    bus.transfer16(0x8420);
+    bus.transfer16(configRegs[2]);
+
+    //read data again and check for correct configuration
+    bus.transfer16(0x0400);
+    if(bus.transfer16(0x0410) != configRegs[0])
+      return false;
+    if(bus.transfer16(0x0420) != configRegs[1])
+      return false;
+    if(bus.transfer16(0xFFFF) != configRegs[2])
+      return false;
+  }
+  else
+  {
+    //send configuration to volatile registers 0x0110 - 0x0130
+
+    bus.transfer16(0x8110);
+    bus.transfer16(configRegs[0]);
+    bus.transfer16(0x8120);
+    bus.transfer16(configRegs[1]);
+    bus.transfer16(0x8130);
+    bus.transfer16(configRegs[2]);
+
+    //read data again and check for correct configuration
+    bus.transfer16(0x0110);
+    if(bus.transfer16(0x0120) != configRegs[0])
+      return false;
+    if(bus.transfer16(0x0130) != configRegs[1])
+      return false;
+    if(bus.transfer16(0xFFFF) != configRegs[2])
+      return false;
+  }
+  return true;
+}
+
+bool TLI4971::prepareBus()
+{
   bus.begin();
   if(!bus.enterSensorIF())
     return false;
@@ -928,29 +1000,104 @@ bool TLI4971::sendConfig()
   bus.transfer16(0x8010);
   bus.transfer16(0x0000);
 
-  //send configuration to volatile registers 0x0110 - 0x0120
+}
 
-  bus.transfer16(0x8110);
-  bus.transfer16(configRegs[0]);
-  bus.transfer16(0x8120);
-  bus.transfer16(configRegs[1]);
-  bus.transfer16(0x8130);
-  bus.transfer16(configRegs[2]);
-
-  //read data again and check for correct configuration
-  bus.transfer16(0x0110);
-  if(bus.transfer16(0x0120) != configRegs[0])
-    return false;
-  if(bus.transfer16(0x0130) != configRegs[1])
-    return false;
-  if(bus.transfer16(0xFFFF) != configRegs[2])
-    return false;
-
+void TLI4971::closeBus()
+{
   //power on ISM
   bus.transfer16(0x8250);
   bus.transfer16(0x0000);
 
   bus.end();
+}
 
-  return true;
+void TLI4971::EEPROMprogramZeros()
+{
+  //EEPROM command
+  bus.transfer16(0x83E0);
+  //program zeros
+  bus.transfer16(0x024E);
+}
+
+void TLI4971::EEPROMprogramOnes()
+{
+  //EEPROM command
+  bus.transfer16(0x83E0);
+  //program ones
+  bus.transfer16(0x024F);
+}
+
+void TLI4971::EEPROMrefresh()
+{
+  //EEPROM command
+  bus.transfer16(0x83E0);
+  //EEPROM refresh
+  bus.transfer16(0x024C);
+}
+
+bool TLI4971::programConfigToEEPROM()
+{
+  bool result;
+
+  if(progPowerPin == PNUM_NOT_DEFINED)
+  {
+    result = false;
+    goto cleanup;
+  }
+
+  //Force the OCD2 pin low to protect it from high voltage.
+  //This assumes a series resistor is installed between the part and the MCU
+  //as described in the documentation.
+  pinMode(ocd2Pin, OUTPUT);
+  digitalWrite(ocd2Pin, LOW);
+
+  if(!prepareBus())
+  {
+    result = false;
+    goto cleanup;
+  }
+
+  if(!transferConfig(true))
+  {
+    result = false;
+    goto cleanup;
+  }
+
+  EEPROMprogramZeros();
+
+  digitalWrite(progPowerPin, HIGH);
+
+  delay(30);
+
+  digitalWrite(progPowerPin, LOW);
+
+  EEPROMrefresh();
+
+  delayMicroseconds(100);
+
+  if(!transferConfig(true))
+  {
+    result = false;
+    goto cleanup;
+  }
+
+  EEPROMprogramOnes();
+
+  digitalWrite(progPowerPin, HIGH);
+
+  delay(30);
+
+  digitalWrite(progPowerPin, LOW);
+
+  EEPROMrefresh();
+  delayMicroseconds(100);
+
+  result = true;
+
+cleanup:
+  closeBus();
+
+  pinMode(ocd2Pin, INPUT);
+
+  return result;
 }
