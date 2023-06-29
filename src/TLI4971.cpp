@@ -828,7 +828,7 @@ int TLI4971::getVrefExt(void)
  */
 bool TLI4971::getRatioGain(void)
 {
-  return (bool) (configRegs[3] & 0x4000 >> 14);
+  return (bool) (configRegs[2] & 0x4000 >> 14);
 }
 
 /**
@@ -841,7 +841,7 @@ bool TLI4971::getRatioGain(void)
  */
 bool TLI4971::getRatioOff(void)
 {
-  return (bool) (configRegs[3] & 0x8000 >> 15);
+  return (bool) (configRegs[2] & 0x8000 >> 15);
 }
 
 /**
@@ -854,7 +854,7 @@ bool TLI4971::getRatioOff(void)
  */
 bool TLI4971::get1V5Quiescent(void)
 {
-  return (bool) (configRegs[3] & 0x1000 >> 12);
+  return (bool) (configRegs[2] & 0x1000 >> 12);
 }
 
 /**

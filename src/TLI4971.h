@@ -52,32 +52,32 @@ class TLI4971
     bool setOcdCompHyst(int threshold);
     bool setSwOcdCompHyst(double hysteresis);
     bool setVrefExt(int vrefExtVoltage);
-	bool setRatioGain(bool enable);
-	bool setRatioOff(bool enable);
-	bool set1V5Quiescent(bool enable);
+    bool setRatioGain(bool enable);
+    bool setRatioOff(bool enable);
+    bool set1V5Quiescent(bool enable);
 
     bool getOcd1State(void);
     bool getOcd2State(void);
     bool getSwOcdState(void);
 
-	int getMeasRange(void);
-	int getOpMode(void);
-	bool getOcd1Enable(void);
-	int getOcd1RawThreshold(void);
-	int getOcd1DeglitchTime(void);
-	bool getOcd2Enable(void);
-	int getOcd2RawThreshold(void);
-	int getOcd2DeglitchTime(void);
+    int getMeasRange(void);
+    int getOpMode(void);
+    bool getOcd1Enable(void);
+    int getOcd1RawThreshold(void);
+    int getOcd1DeglitchTime(void);
+    bool getOcd2Enable(void);
+    int getOcd2RawThreshold(void);
+    int getOcd2DeglitchTime(void);
 
-	int getOcdRawCompHyst(void);
+    int getOcdRawCompHyst(void);
     double getSwOcdCompHyst(void);
     int getVrefExt(void);
-	bool getRatioGain(void);
-	bool getRatioOff(void);
-	bool get1V5Quiescent(void);
+    bool getRatioGain(void);
+    bool getRatioOff(void);
+    bool get1V5Quiescent(void);
 
-	uint16_t convertThresholdToRaw(int threshold);
-	uint16_t convertCompHystToRaw(int threshold);
+    uint16_t convertThresholdToRaw(int threshold);
+    uint16_t convertCompHystToRaw(int threshold);
 
 
   private:
@@ -102,9 +102,9 @@ class TLI4971
 
     bool ll5V = true;
 #ifdef ADC_RESOLUTION
-	int adcResol = ADC_RESOLUTION; //if possible: highest possible resolution
+    int adcResol = ADC_RESOLUTION; //if possible: highest possible resolution
 #else
-    int adcResol = 10;	//standard for Arduino UNO
+    int adcResol = 10;  //standard for Arduino UNO
 #endif
 
     uint16_t configRegs[3];
