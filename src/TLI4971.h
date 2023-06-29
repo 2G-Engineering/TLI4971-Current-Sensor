@@ -31,7 +31,7 @@ class TLI4971
 
     TLI4971(int aout, int vref, int pwr, int sici, int ocd1, int ocd2, int mux, bool mc5V = true, int progPwr = PNUM_NOT_DEFINED);
     ~TLI4971(void);
-    bool begin(bool leaveCommsActive = true, bool noPowerCycle = false);
+    bool begin(bool leaveCommsActive = false, bool noPowerCycle = false);
     bool reset(void);
     void end(void);
     double read(void);
