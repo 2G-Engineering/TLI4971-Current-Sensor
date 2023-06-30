@@ -581,7 +581,7 @@ bool TLI4971::setVrefExt(int vrefExtVoltage)
     return false;
   uint16_t configBackup = configRegs[2];
   configRegs[2] &= 0xF8FF;
-  configRegs[2] |= (vrefExt&0x0007)<<4;
+  configRegs[2] |= (vrefExtVoltage&0x0007)<<4;
   if(sendConfig())
   {
     vrefExt = vrefExtVoltage;
