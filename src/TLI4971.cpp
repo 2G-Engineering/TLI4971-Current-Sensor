@@ -14,6 +14,15 @@
 #include "TLI4971.h"
 #include "util/SICI.h"
 
+#define WANT_DEBUG
+
+#ifdef WANT_DEBUG
+#define debugprint(...)   Serial3.print(__VA_ARGS__)
+#define debugprintln(...) Serial3.println(__VA_ARGS__)
+#else
+#define debugprint(...)
+#define debugprintln(...)
+#endif
 
 
 #define mapThrS1(thr) (thr<8)?0x16+thr*3+(int)(thr*0.25):0x10+(thr-8)*5-(int)((thr-8)*0.25)
@@ -978,6 +987,7 @@ bool TLI4971::transferConfig(bool sendConfigToEEPROM)
 {
   if(sendConfigToEEPROM)
   {
+    uint16_t result;
     //send configuration to EEPROM registers 0x0400 - 0x0420
 
     bus.transfer16(0x8400);
@@ -989,12 +999,33 @@ bool TLI4971::transferConfig(bool sendConfigToEEPROM)
 
     //read data again and check for correct configuration
     bus.transfer16(0x0400);
-    if(bus.transfer16(0x0410) != configRegs[0])
+    result = bus.transfer16(0x0410);
+    if(result != configRegs[0])
+    {
+      debugprint(F("Transfer to EEPROM 0x40 FAILED.  Expected "));
+      debugprint(configRegs[0]);
+      debugprint(", got ");
+      debugprintln(result);
       return false;
-    if(bus.transfer16(0x0420) != configRegs[1])
+    }
+    result = bus.transfer16(0x0420);
+    if(result != configRegs[1])
+    {
+      debugprint(F("Transfer to EEPROM 0x41 FAILED.  Expected "));
+      debugprint(configRegs[1]);
+      debugprint(", got ");
+      debugprintln(result);
       return false;
-    if(bus.transfer16(0xFFFF) != configRegs[2])
+    }
+    result = bus.transfer16(0xFFFF);
+    if(result != configRegs[2])
+    {
+      debugprint(F("Transfer to EEPROM 0x42 FAILED.  Expected "));
+      debugprint(configRegs[2]);
+      debugprint(", got ");
+      debugprintln(result);
       return false;
+    }
   }
   else
   {
@@ -1076,6 +1107,7 @@ bool TLI4971::programConfigToEEPROM(bool leaveCommsActive)
 
   if(progPowerPin == PNUM_NOT_DEFINED)
   {
+    debugprintln(F("Undefined power pin"));
     result = false;
     goto cleanup;
   }
@@ -1088,12 +1120,14 @@ bool TLI4971::programConfigToEEPROM(bool leaveCommsActive)
 
   if(!prepareBus())
   {
+    debugprintln(F("Prepare bus failed"));
     result = false;
     goto cleanup;
   }
 
   if(!transferConfig(true))
   {
+    debugprintln(F("Transfer config 1 failed"));
     result = false;
     goto cleanup;
   }
@@ -1112,6 +1146,7 @@ bool TLI4971::programConfigToEEPROM(bool leaveCommsActive)
 
   if(!transferConfig(true))
   {
+    debugprintln(F("Transfer config 2 failed"));
     result = false;
     goto cleanup;
   }
