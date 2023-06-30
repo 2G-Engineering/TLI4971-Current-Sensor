@@ -155,6 +155,20 @@ bool TLI4971::begin(bool leaveCommsActive, bool noPowerCycle)
   return true;
 }
 
+static bool TLI4971ParallelBegin(TLI4971 sensors[], int numSensors, bool leaveCommsActive = false, bool noPowerCycle = false)
+{
+  if (numSensors > 0)
+  {
+    tli4971::Sici busses[numSensors];
+    for (int i = 0; i < numSensors; i += 1)
+    {
+      busses[i] = sensors[i]->bus;
+    }
+    return tli4971::Sici::parallelEnterSensorIF(busses, numSensors, noPowerCycle);
+  }
+  return false;
+}
+
 /**
  * @brief     Resets sensor to factory settings.
  *

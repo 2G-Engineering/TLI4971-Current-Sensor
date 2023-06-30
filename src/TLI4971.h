@@ -61,7 +61,8 @@ class TLI4971
 
     bool programConfigToEEPROM(bool leaveCommsActive = false);
 
-
+    static bool TLI4971ParallelBegin(TLI4971 sensors[], int numSensors, bool leaveCommsActive = false, bool noPowerCycle = false);
+    
 
   private:
     //const Sici_TLI4971::_SICI_timing SICI_timing = {150,400,60,120,120,60,16,120,35,20,20};
