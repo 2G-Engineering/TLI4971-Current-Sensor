@@ -68,7 +68,7 @@ void tli4971::Sici::end(void)
 bool tli4971::Sici::enterSensorIF(bool noPowerCycle)
 {
   uint16_t rec;
-  if (!noPowerCycle) {
+  if(!noPowerCycle) {
     //restart Sensor by switching VDD off and on again
     digitalWrite(mPwrPin, HIGH);		//For green Shield: digitalWrite(mPwrPin, LOW);
     digitalWrite(mPin, LOW);
