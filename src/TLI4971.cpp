@@ -99,13 +99,16 @@ TLI4971::~TLI4971(void)
  * @retval    true if sensor can be configurated
  * @retval    false if sensor not available for configuration (SICI communication failed)
  */
-bool TLI4971::begin(bool leaveCommsActive, bool noPowerCycle)
+bool TLI4971::begin(bool leaveCommsActive, bool noPowerCycle, bool skipEnterIF)
 {
   bus.begin();
-  if(!bus.enterSensorIF(noPowerCycle))
+  if(!skipEnterIF)
   {
-    bus.end();
-    return false;
+    if(!bus.enterSensorIF(noPowerCycle))
+    {
+      bus.end();
+      return false;
+    }
   }
 
   //power down ISM
@@ -156,14 +159,14 @@ bool TLI4971::begin(bool leaveCommsActive, bool noPowerCycle)
   return true;
 }
 
-static bool TLI4971ParallelBegin(TLI4971 sensors[], int numSensors, bool leaveCommsActive = false, bool noPowerCycle = false)
+bool TLI4971::TLI4971ParallelBegin(TLI4971 *sensors[], int numSensors, bool leaveCommsActive, bool noPowerCycle)
 {
   if (numSensors > 0)
   {
-    tli4971::Sici busses[numSensors];
+    tli4971::Sici *busses[numSensors];
     for (int i = 0; i < numSensors; i += 1)
     {
-      busses[i] = sensors[i]->bus;
+      busses[i] = &sensors[i]->bus;
     }
     return tli4971::Sici::parallelEnterSensorIF(busses, numSensors, noPowerCycle);
   }
@@ -861,7 +864,7 @@ int TLI4971::getVrefExt(void)
  */
 bool TLI4971::getRatioGain(void)
 {
-  return (bool) (configRegs[3] & 0x4000 >> 14);
+  return (bool) (configRegs[2] & 0x4000 >> 14);
 }
 
 /**
@@ -874,7 +877,7 @@ bool TLI4971::getRatioGain(void)
  */
 bool TLI4971::getRatioOff(void)
 {
-  return (bool) (configRegs[3] & 0x8000 >> 15);
+  return (bool) (configRegs[2] & 0x8000 >> 15);
 }
 
 /**
@@ -887,7 +890,7 @@ bool TLI4971::getRatioOff(void)
  */
 bool TLI4971::get1V5Quiescent(void)
 {
-  return (bool) (configRegs[3] & 0x1000 >> 12);
+  return (bool) (configRegs[2] & 0x1000 >> 12);
 }
 
 /**

@@ -53,7 +53,8 @@ public:
 	void end(void);
 	uint16_t transfer16(uint16_t dataIn);
 	bool enterSensorIF(bool noPowerCycle = false);
-  static bool parallelEnterSensorIF(Sici busses, int numBusses, bool noPowerCycle = false);
+  static bool parallelEnterSensorIF(Sici *busses[], int numBusses, bool noPowerCycle = false);
+  static void parallelTransfer16(Sici *busses[], uint16_t dataIn[], uint16_t dataOut[], int numBusses);
 private:
 	uint8_t mActive;
 	uint8_t mPin;
