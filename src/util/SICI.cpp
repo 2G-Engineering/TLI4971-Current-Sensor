@@ -73,7 +73,7 @@ void tli4971::Sici::end(void)
 bool tli4971::Sici::enterSensorIF(bool noPowerCycle)
 {
   uint16_t rec;
-  if (!noPowerCycle) {
+  if(!noPowerCycle) {
     //restart Sensor by switching VDD off and on again
     digitalWrite(mPwrPin, HIGH);		//For green Shield: digitalWrite(mPwrPin, LOW);
     digitalWrite(mPin, LOW);
@@ -91,9 +91,9 @@ bool tli4971::Sici::enterSensorIF(bool noPowerCycle)
   return rec == 0;
 }
 
-static void tli4971::Sici::parallelTransfer16(Sici busses[], uint16_t dataIn[], uint16_t dataOut[], int numBusses)
+void tli4971::Sici::parallelTransfer16(Sici *busses[], uint16_t dataIn[], uint16_t dataOut[], int numBusses)
 {
-  for (int b = 0; b < numBusses; b += 1)
+  for(int b = 0; b < numBusses; b += 1)
   {
     dataOut[b] = 0;
   }
@@ -101,29 +101,28 @@ static void tli4971::Sici::parallelTransfer16(Sici busses[], uint16_t dataIn[], 
   //transfer and read data with LSB first
   for(int i = 0; i < 16; i++)
   {
-    for (int b = 0; b < numBusses; b += 1)
+    for(int b = 0; b < numBusses; b += 1)
     {
       busses[b]->write_bit((dataIn[b]>>(i))&0x1);
       dataOut[b] |= (busses[b]->read_bit()&0x1)<<(i);
     }
   }
-  return dataOut;
 }
 
-static bool tli4971::Sici::parallelEnterSensorIF(Sici busses[], int numBusses, bool noPowerCycle = false)
+bool tli4971::Sici::parallelEnterSensorIF(Sici *busses[], int numBusses, bool noPowerCycle)
 {
   bool result = true;
-  if (numBusses > 0) {
+  if(numBusses > 0) {
     uint16_t commands[numBusses];
     uint16_t results[numBusses];
-    for (int b = 0; b < numBusses; b += 1)
+    for(int b = 0; b < numBusses; b += 1)
     {
       commands[b] = ENTER_IF_COMMAND;
     }
     parallelTransfer16(busses, commands, results, numBusses);
-    for (int b = 0; b < numBusses; b += 1)
+    for(int b = 0; b < numBusses; b += 1)
     {
-     if (results[b] != 0) {
+     if(results[b] != 0) {
        result = false;
      }
     }
