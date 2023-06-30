@@ -1057,6 +1057,7 @@ bool TLI4971::prepareBus()
     bus.begin();
     if(!bus.enterSensorIF())
       return false;
+  }
     //power down ISM
     bus.transfer16(0x8250);
     bus.transfer16(0x8000);
@@ -1064,7 +1065,7 @@ bool TLI4971::prepareBus()
     //Disable failure indication
     bus.transfer16(0x8010);
     bus.transfer16(0x0000);
-  }
+  
   return true;
 }
 
