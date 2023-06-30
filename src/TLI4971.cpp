@@ -101,7 +101,7 @@ TLI4971::~TLI4971(void)
 bool TLI4971::begin(bool leaveCommsActive, bool noPowerCycle, bool skipEnterIF)
 {
   bus.begin();
-  if(!skipEnterIF))
+  if(!skipEnterIF)
   {
     if(!bus.enterSensorIF(noPowerCycle))
     {
