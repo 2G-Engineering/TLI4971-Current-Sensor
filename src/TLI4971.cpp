@@ -710,7 +710,7 @@ int TLI4971::getOpMode(void)
  */
 bool TLI4971::getOcd1Enable(void)
 {
-  return (bool) (configRegs[0] & 0x4000 >> 14);
+  return (bool) ((configRegs[0] & 0x4000) >> 14);
 }
 
 /**
@@ -724,7 +724,7 @@ bool TLI4971::getOcd1Enable(void)
  */
 int TLI4971::getOcd1RawThreshold(void)
 {
-  return configRegs[1] & 0x03F0 >> 4;
+  return (configRegs[1] & 0x03F0) >> 4;
 }
 
 /**
@@ -735,7 +735,7 @@ int TLI4971::getOcd1RawThreshold(void)
  */
 int TLI4971::getOcd1DeglitchTime(void)
 {
-  return configRegs[0] & 0x0380 >> 7;
+  return (configRegs[0] & 0x0380) >> 7;
 }
 
 /**
@@ -748,7 +748,7 @@ int TLI4971::getOcd1DeglitchTime(void)
  */
 bool TLI4971::getOcd2Enable(void)
 {
-  return (bool) (configRegs[0] & 0x8000 >> 15);
+  return (bool) ((configRegs[0] & 0x8000) >> 15);
 }
 
 /**
@@ -762,7 +762,7 @@ bool TLI4971::getOcd2Enable(void)
  */
 int TLI4971::getOcd2RawThreshold(void)
 {
-  return configRegs[1] & 0xFC00 >> 10;
+  return (configRegs[1] & 0xFC00) >> 10;
 }
 
 /**
@@ -773,7 +773,7 @@ int TLI4971::getOcd2RawThreshold(void)
  */
 int TLI4971::getOcd2DeglitchTime(void)
 {
-  return configRegs[0] & 0x3C00 >> 10;
+  return (configRegs[0] & 0x3C00) >> 10;
 }
 
 /**
@@ -815,7 +815,7 @@ double TLI4971::getSwOcdCompHyst(void)
  */
 int TLI4971::getVrefExt(void)
 {
-  return configRegs[2] & 0x0700 >> 8;
+  return (configRegs[2] & 0x0700) >> 8;
 }
 
 /**
@@ -828,7 +828,7 @@ int TLI4971::getVrefExt(void)
  */
 bool TLI4971::getRatioGain(void)
 {
-  return (bool) (configRegs[2] & 0x4000 >> 14);
+  return (bool) ((configRegs[2] & 0x4000) >> 14);
 }
 
 /**
@@ -841,7 +841,7 @@ bool TLI4971::getRatioGain(void)
  */
 bool TLI4971::getRatioOff(void)
 {
-  return (bool) (configRegs[2] & 0x8000 >> 15);
+  return (bool) ((configRegs[2] & 0x8000) >> 15);
 }
 
 /**
@@ -854,7 +854,7 @@ bool TLI4971::getRatioOff(void)
  */
 bool TLI4971::get1V5Quiescent(void)
 {
-  return (bool) (configRegs[2] & 0x1000 >> 12);
+  return (bool) ((configRegs[2] & 0x1000) >> 12);
 }
 
 /**
