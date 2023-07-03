@@ -40,6 +40,8 @@
 #define mapHystThrS5(thr) (thr<8)?0x4+thr-(int)((thr+1)/2):0x3+(thr-8)-(int)((thr-5)/4)
 #define mapHystThrS6(thr) (thr<8)?0x2+(int)((thr+1)/3):0x2+(int)((thr-8)/2)
 
+#define NUM_CONFIG_REGS (sizeof(configRegs) / sizeof(configRegs[0]))
+
 
 /**
  * @brief           Current sensor instance constructor
@@ -131,9 +133,13 @@ bool TLI4971::begin(bool leaveCommsActive, bool noPowerCycle, bool skipEnterIF)
   //read out configuration
 
   bus.transfer16(0x0400);
-  configRegs[0] = bus.transfer16(0x0410);
-  configRegs[1] = bus.transfer16(0x0420);
-  configRegs[2] = bus.transfer16(0xFFFF);
+  for(int i = 0; i < (NUM_CONFIG_REGS - 1); i += 1)
+  {
+    uint16_t reg = (0x40 + i + 1) << 4;
+    configRegs[i] = bus.transfer16(reg);
+  }
+  //last register is read by sending a dummy command
+  configRegs[NUM_CONFIG_REGS - 1] = bus.transfer16(0xFFFF);
   //Write + Read to check if interface is working? Or CRC Check?
 
   bus.transfer16(0x8400);
@@ -985,6 +991,7 @@ cleanup:
 
 bool TLI4971::transferConfig(bool sendConfigToEEPROM)
 {
+  updateCRC();
   if(sendConfigToEEPROM)
   {
     uint16_t result;
@@ -1065,7 +1072,6 @@ bool TLI4971::prepareBus()
     //Disable failure indication
     bus.transfer16(0x8010);
     bus.transfer16(0x0000);
-  
   return true;
 }
 
@@ -1174,4 +1180,63 @@ cleanup:
   pinMode(ocd2Pin, INPUT);
 
   return result;
+}
+
+//CRC calculation example for Infineon TLI4971 current sensor
+//CRC 8 (SAE - J1850) CRC polynomial: x^8 + x^4 + x^3 + x^2 + 1
+// len = 18 (EEPROM line 0-17)
+#define CRC_POLYNOMIAL 0x1D
+#define CRC_SEED 0xAA
+//check CRC
+bool TLI4971::checkCRC(uint16_t* data, int len) {
+  uint8_t checkSum = data[2]&0xFF;//CRC lower byte in EEPROM line2
+  return checkSum == crcCalc(data, len);
+}
+
+//read data beginning in EEPROM line 3 to line 17, append line 0 to line 2
+uint8_t TLI4971::crcCalc(uint16_t* data, int len) {
+  uint8_t crcData8[len*2];
+  for(int i = 0; i < len; i++)
+  {
+    crcData8[i*2] = ( data[(i+3)%18] >>8 ) & 0xFF;//read upper 8 bit
+    crcData8[i*2+1] = ( data[(i+3)%18] ) & 0xFF;//read lower 8 bit
+  }
+  return crc8(crcData8, len*2-1); //do not include last byte (line 2 lower byte)
+}
+
+// CRC calculation
+uint8_t TLI4971::crc8(uint8_t *data, uint8_t length)
+{
+  uint32_t crc;
+  int16_t i, bit;
+  crc = CRC_SEED;
+  for(i = 0; i < length; i++)
+  {
+    crc ^= data[i];
+    for(bit = 0; bit < 8; bit++)
+    {
+      if((crc & 0x80) != 0)
+      {
+        crc <<= 1;
+        crc ^= CRC_POLYNOMIAL;
+      }
+      else
+      {
+        crc <<= 1;
+      }
+    }
+  }
+return ~crc; // ~crc = crc^0xFF;
+}
+
+void TLI4971::updateCRC(void)
+{
+  uint8 crc = crcCalc(configRegs, NUM_CONFIG_REGS);
+  configRegs[2] &= 0xFF00;
+  configRegs[2] |= crc;
+}
+
+bool TLI4971::getIsCRCValid(void)
+{
+  return checkCRC(configRegs, NUM_CONFIG_REGS);
 }

@@ -59,6 +59,8 @@ class TLI4971
     bool getOcd1State(void);
     bool getOcd2State(void);
     bool getSwOcdState(void);
+    
+    bool getIsCRCValid(void);
 
     bool programConfigToEEPROM(bool leaveCommsActive = false);
 
@@ -112,7 +114,7 @@ class TLI4971
     int adcResol = 10;  //standard for Arduino UNO
 #endif
 
-    uint16_t configRegs[3];
+    uint16_t configRegs[18];
 
     double swOcdThreshold = 0;  //Alarm triggered if current exceeds this level [A]
     double lastSwOcdValue = 0;
@@ -135,6 +137,12 @@ class TLI4971
     void EEPROMprogramZeros(void);
     void EEPROMprogramOnes(void);
     void EEPROMrefresh(void);
+    
+    bool checkCRC(uint16_t* data, int len);
+    uint8_t crcCalc(uint16_t* data, int len);
+    uint8_t crc8(uint8_t *data, uint8_t length);
+    void updateCRC(void);
+
 
 };
 
