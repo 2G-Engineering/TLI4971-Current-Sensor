@@ -791,13 +791,13 @@ bool TLI4971::prepareBus()
     if(!bus.enterSensorIF())
       return false;
   }
-    //power down ISM
-    bus.transfer16(0x8250);
-    bus.transfer16(0x8000);
+  //power down ISM
+  bus.transfer16(0x8250);
+  bus.transfer16(0x8000);
 
-    //Disable failure indication
-    bus.transfer16(0x8010);
-    bus.transfer16(0x0000);
+  //Disable failure indication
+  bus.transfer16(0x8010);
+  bus.transfer16(0x0000);
   return true;
 }
 
@@ -953,7 +953,7 @@ return ~crc; // ~crc = crc^0xFF;
 
 void TLI4971::updateCRC(void)
 {
-  uint8 crc = crcCalc(configRegs, NUM_CONFIG_REGS);
+  uint8_t crc = crcCalc(configRegs, NUM_CONFIG_REGS);
   configRegs[2] &= 0xFF00;
   configRegs[2] |= crc;
 }
