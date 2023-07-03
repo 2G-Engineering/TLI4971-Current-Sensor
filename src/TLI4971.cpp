@@ -1231,7 +1231,7 @@ return ~crc; // ~crc = crc^0xFF;
 
 void TLI4971::updateCRC(void)
 {
-  uint8 crc = crcCalc(configRegs, NUM_CONFIG_REGS);
+  uint8_t crc = crcCalc(configRegs, NUM_CONFIG_REGS);
   configRegs[2] &= 0xFF00;
   configRegs[2] |= crc;
 }
