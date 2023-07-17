@@ -667,6 +667,31 @@ bool TLI4971::set1V5Quiescent(bool enable)
 }
 
 /**
+ * @brief       Configures the OCD2 failure only state of the sensor
+ *
+ * @param[in]   enable  true: OCD2 is configured to output failure indication only
+                false: OCD2 is configured to output both failure indication and overcurrent detection (default)
+ *
+ * @return      bool
+ * @retval      true if configuration succeeded
+ * @retval      false if configuration failed
+ */
+bool TLI4971::setOcd2fOnly(bool enable)
+{
+  uint16_t configBackup = configRegs[2];
+  if(enable)
+    configRegs[2] |= 0x2000;
+  else
+    configRegs[2] &= 0xDFFF;
+  if(sendConfig())
+  {
+    return true;
+  }
+  configRegs[2] = configBackup;
+  return false;
+}
+
+/**
  * @brief       Get measurement range of the sensor (refer to Programming Guide).
  *
  * @return      int
@@ -855,6 +880,19 @@ bool TLI4971::getRatioOff(void)
 bool TLI4971::get1V5Quiescent(void)
 {
   return (bool) ((configRegs[2] & 0x1000) >> 12);
+}
+
+/**
+ * @brief       Get configured OCD2 failure only state
+ *
+ * @return      bool
+ * @retval      true if OCD2 is configured to output failure indication only
+ * @retval      false if OCD2 is configured to output both failure indication and overcurrent detection 
+ *
+ */
+bool TLI4971::getOcd2fOnly(void)
+{
+  return (bool) ((configRegs[2] & 0x2000) >> 13);
 }
 
 /**
