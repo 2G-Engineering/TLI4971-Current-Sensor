@@ -55,6 +55,7 @@ class TLI4971
     bool setRatioGain(bool enable);
     bool setRatioOff(bool enable);
     bool set1V5Quiescent(bool enable);
+    bool setOcd2fOnly(bool enable);
 
     bool getOcd1State(void);
     bool getOcd2State(void);
@@ -81,6 +82,7 @@ class TLI4971
     bool getRatioGain(void);
     bool getRatioOff(void);
     bool get1V5Quiescent(void);
+    bool getOcd2fOnly(void);
 
     uint16_t convertThresholdToRaw(int threshold);
     uint16_t convertCompHystToRaw(int threshold);
