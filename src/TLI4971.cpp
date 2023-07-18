@@ -504,34 +504,30 @@ bool TLI4971::setOpMode(int operatingMode)
  */
 bool TLI4971::configOcd1(bool enable, int threshold, int deglitchTime)
 {
+  if(threshold > THR1_8 || threshold < THR1_1 || deglitchTime < D0 || deglitchTime > D7)
+    return false;
+  uint16_t setting;
+  setting = convertThresholdToRaw(threshold);
+  uint16_t configBackup0 = configRegs[0];
+  uint16_t configBackup1 = configRegs[1];
+  configRegs[0] &= 0xBC7F;
+  configRegs[1] &= 0xFC0F;
   if(enable)
   {
-    if(threshold > THR1_8 || threshold < THR1_1 || deglitchTime < D0 || deglitchTime > D7)
-      return false;
-    uint16_t setting;
-    setting = convertThresholdToRaw(threshold);
-    uint16_t configBackup0 = configRegs[0];
-    uint16_t configBackup1 = configRegs[1];
-    configRegs[0] &= 0xBC7F;
-    configRegs[1] &= 0xFC0F;
-    configRegs[0] |= 0x4000 | (deglitchTime<<7);  //enable OCD1 and set deglitch-time
-    configRegs[1] |= (setting<<4);   //set Threshold level
-    if(sendConfig())
-      return true;
-    configRegs[0] = configBackup0;
-    configRegs[1] = configBackup1;
+    configRegs[0] |= 0x4000; //enable OCD1
   }
-  else
+  configRegs[0] |= (deglitchTime<<7); //set deglitch-time
+  configRegs[1] |= (setting<<4);   //set Threshold level
+  if(sendConfig())
   {
-    uint16_t configBackup = configRegs[0];
-    configRegs[0] &= 0xBFFF;  //Force OCD1En Bit to 0
-    if(sendConfig())
+    if (!enable)
     {
       ocd1Mode = NONE;
-      return true;
     }
-    configRegs[0] = configBackup;
+    return true;
   }
+  configRegs[0] = configBackup0;
+  configRegs[1] = configBackup1;
   return false;
 }
 
@@ -548,34 +544,30 @@ bool TLI4971::configOcd1(bool enable, int threshold, int deglitchTime)
  */
 bool TLI4971::configOcd2(bool enable, int threshold, int deglitchTime)
 {
+  if(threshold > THR2_8 || threshold < THR2_1 || deglitchTime < D0 || deglitchTime > D15)
+    return false;
+  uint16_t setting;
+  setting = convertThresholdToRaw(threshold);
+  uint16_t configBackup0 = configRegs[0];
+  uint16_t configBackup1 = configRegs[1];
+  configRegs[0] &= 0x43FF;
+  configRegs[1] &= 0x03FF;
   if(enable)
   {
-    if(threshold > THR2_8 || threshold < THR2_1 || deglitchTime < D0 || deglitchTime > D15)
-      return false;
-    uint16_t setting;
-    setting = convertThresholdToRaw(threshold);
-    uint16_t configBackup0 = configRegs[0];
-    uint16_t configBackup1 = configRegs[1];
-    configRegs[0] &= 0x43FF;
-    configRegs[1] &= 0x03FF;
-    configRegs[0] |= 0x8000 | (deglitchTime<<10);  //enable OCD1 and set deglitch-time
-    configRegs[1] |= (setting<<10);   //set Threshold level
-    if(sendConfig())
-      return true;
-    configRegs[0] = configBackup0;
-    configRegs[1] = configBackup1;
+  configRegs[0] |= 0x8000; //enable OCD2
   }
-  else
+  configRegs[0] |= (deglitchTime<<10); //set deglitch-time
+  configRegs[1] |= (setting<<10);   //set Threshold level
+  if(sendConfig())
   {
-    uint16_t configBackup = configRegs[0];
-    configRegs[0] &= 0x7FFF;  //Force OCD2En Bit to 0
-    if(sendConfig())
+    if (!enable)
     {
       ocd2Mode = NONE;
-      return true;
     }
-    configRegs[0] = configBackup;
+    return true;
   }
+  configRegs[0] = configBackup0;
+  configRegs[1] = configBackup1;
   return false;
 }
 
