@@ -517,10 +517,10 @@ bool TLI4971::configOcd2(bool enable, int threshold, int deglitchTime)
   else
   {
     uint16_t configBackup = configRegs[0];
-    configRegs[0] &= 0xBFFF;  //Force OCD1En Bit to 0
+    configRegs[0] &= 0x7FFF;  //Force OCD2En Bit to 0
     if(sendConfig())
     {
-      ocd1Mode = NONE;
+      ocd2Mode = NONE;
       return true;
     }
     configRegs[0] = configBackup;
